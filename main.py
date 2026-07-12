@@ -116,6 +116,9 @@ channel_name = app.client.conversations_info(channel=PERSONAL_CHANNEL_ID)["chann
     "name"
 ]
 # Sentry so good bruh
+if SENTRY_DSN.strip() == "# OPTIONAL (error tracking)":
+    SENTRY_DSN = False
+
 if SENTRY_DSN:
     sentry_sdk.init(
         dsn=SENTRY_DSN,
