@@ -1362,6 +1362,36 @@ def usergroup_cleaner(ack, respond, command, client):
         sentry_sdk.capture_exception(e)
 
 
+def data_harvester9000(user_id):
+    data = {
+        "idv_status": "not found",
+        "hackatime_total_hours": "not found",
+        "hackatime_best_project": "not found",
+    }
+
+    idv_response = requests.get(
+        "https://auth.hackclub.com/api/external/check", params={"slack_id": user_id}
+    )
+    idv_data = idv_response.json()
+    data["idv_status"] = idv_data.get("result")
+
+
+    hackatime_user_response =  requests.get(
+        f"https://hackatime.hackclub.com/api/v1/users/{user_id}/stats"
+    )
+    hackatime_user_data = hackatime_user_response.json()
+    data["hackatime_total_hours"] = hackatime_user_data["data"]["human_readable_total"]
+
+    hackatime_projects_response =  requests.get(
+            f"https://hackatime.hackclub.com/api/v1/users/{user_id}/stats?features=projects"
+        )
+    hackatime_projects_data = hackatime_projects_response.json()
+    data["hackatime_best_project"] = hackatime_projects_data["data"]["projects"][0]["name"] if hackatime_projects_data["projects"] else "No projects found"
+
+    return data
+
+
+
 # Join via Slash command
 @app.command(f"/join-channel-{SLASH_PREFIX}")
 def joining_guardian(ack, respond, say, command, client, body):
@@ -1436,12 +1466,7 @@ def joining_guardian(ack, respond, say, command, client, body):
         text=f":<@{invoker_user_id}>. you requested access to join <@{CMAN_USER_ID}>'s channel! :yay: You should wait for a while for the channel owner to review your request to be invited!",
     )
 
-    response = requests.get(
-        "https://auth.hackclub.com/api/external/check",
-        params={"slack_id": invoker_user_id},
-    )
-    idv_data = response.json()
-    idv_result = idv_data.get("result")
+    data = data_harvester9999(invoker_user_id)
     blocks = [
         {
             "type": "section",
